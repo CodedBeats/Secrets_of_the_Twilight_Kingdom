@@ -2,13 +2,16 @@ import pygame
 from settings import *
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos, groups):
+    def __init__(self, pos, groups, obstacle_sprites):
         super().__init__(groups)
         self.image = pygame.image.load("./graphics/test/player.png").convert_alpha()
         self.rect = self.image.get_rect(topleft = pos)
 
         self.direction = pygame.math.Vector2()
         self.speed = 5
+
+        self.obstacle_sprites = obstacle_sprites
+
 
     def input(self):
         keys = pygame.key.get_pressed()
@@ -27,12 +30,48 @@ class Player(pygame.sprite.Sprite):
         else:
             self.direction.x = 0
 
+
     def move(self, speed):
         # this is added to stop player being faster on angled directional movement
         if self.direction.magnitude() != 0:
             self.direction = self.direction.normalize()
 
-        self.rect.center += self.direction * speed
+        # x movement
+        self.rect.x += self.direction.x * speed
+        # check for collision
+        self.collision("horizontal")
+
+        # y movement
+        self.rect.y += self.direction.y * speed
+        # check for collision
+        self.collision("vertical")
+        
+        # self.rect.center += self.direction * speed
+
+
+    def collision(self, direction):
+        if direction == "horizontal":
+            for sprite in self.obstacle_sprites:
+                # if sprite overlaps/collides
+                if sprite.rect.colliderect(self.rect):
+                    if self.direction.x > 0: # moving right
+                        # stop right of moving sprite overlapping with left of static sprite
+                        self.rect.right = sprite.rect.left
+                    if self.direction.x < 0: # moving left
+                        # stop left of moving sprite overlapping with right of static sprite
+                        self.rect.left = sprite.rect.right
+
+        if direction == "vertical":
+            for sprite in self.obstacle_sprites:
+                # if sprite overlaps/collides
+                if sprite.rect.colliderect(self.rect):
+                    if self.direction.y > 0: # moving down
+                        # stop bottom of moving sprite overlapping with top of static sprite
+                        self.rect.bottom = sprite.rect.top
+                    if self.direction.y < 0: # moving up
+                        # stop top of moving sprite overlapping with bottom of static sprite
+                        self.rect.top = sprite.rect.bottom
+
 
     def update(self):
         self.input()
