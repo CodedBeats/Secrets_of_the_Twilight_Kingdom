@@ -1,5 +1,7 @@
 import pygame
+from random import choice
 from settings import *
+from support import import_csv_layout, import_folder
 from tile import Tile
 from player import Player
 from debug import debug
@@ -19,14 +21,38 @@ class Level:
 
 
     def create_map(self):
-        # for row_index, row in enumerate(WORLD_MAP):
-        #     for col_index, col in enumerate(row):
-        #         x = col_index * TILESIZE
-        #         y = row_index * TILESIZE
-        #         if col == "x":
-        #             Tile((x, y), [self.visible_sprites, self.obstacle_sprites])
-        #         if col == "p":
-        #             self.player = Player((x, y), [self.visible_sprites], self.obstacle_sprites)
+        # map dictionary
+        layouts = {
+            "boundary": import_csv_layout("./map/map_FloorBlocks.csv"),
+            "grass": import_csv_layout("./map/map_Grass.csv"),
+            "object": import_csv_layout("./map/map_Objects.csv"),
+        }
+        graphics ={
+            "grass": import_folder("./graphics/Grass"),
+            "objects": import_folder("./graphics/objects"),
+        }
+
+        for style, layout in layouts.items():
+            for row_index, row in enumerate(layout):
+                for col_index, col in enumerate(row):
+                    if col != "-1":
+                        x = col_index * TILESIZE
+                        y = row_index * TILESIZE
+                        
+                        # boundry border
+                        if style == "boundry":
+                            Tile((x, y), [self.visible_sprites, self.obstacle_sprites], "invisible")
+                        
+                        # grass tile
+                        if style == "grass":
+                            random_grass_image = choice(graphics["grass"])
+                            Tile((x, y), [self.visible_sprites, self.obstacle_sprites], "grass", random_grass_image)
+                        
+                        # object tile
+                        if style == "object":
+                            surface = graphics["objects"][int(col)]
+                            Tile((x, y), [self.visible_sprites, self.obstacle_sprites], "object", surface)
+
         self.player = Player((2000, 1430), [self.visible_sprites], self.obstacle_sprites)
 
 
