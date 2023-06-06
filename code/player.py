@@ -1,5 +1,6 @@
 import pygame
 from settings import *
+from support import import_folder
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos, groups, obstacle_sprites):
@@ -8,6 +9,10 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(topleft = pos)
         # hitbox to be slightly smaller than sprite rect and therefore gives illusion of depth in overlapping
         self.hitbox = self.rect.inflate(0, -20)
+
+        # graphics setup
+        self.import_player_assets()
+        self.status = "down"
 
         # movement
         self.direction = pygame.math.Vector2()
@@ -18,6 +23,28 @@ class Player(pygame.sprite.Sprite):
 
         self.obstacle_sprites = obstacle_sprites
 
+    
+    def import_player_assets(self):
+        character_path = "./graphics/player/"
+        # player dictionary
+        self.animations = {
+            "up": [],
+            "down": [],
+            "left": [],
+            "right": [],
+            "right-idle": [],
+            "left-idle": [],
+            "up-idle": [],
+            "down-idle": [],
+            "right_attack": [],
+            "left-attack": [],
+            "up-attack": [],
+            "down-attack": [],
+        }
+
+        for animation in self.animations.keys():
+            full_path = character_path + animation
+            self.animations[animation] = import_folder(full_path)
 
 
     def input(self):
@@ -27,31 +54,57 @@ class Player(pygame.sprite.Sprite):
         # movement input
         if keys[pygame.K_w]:
             self.direction.y = -1
+            self.status = "up"
         elif keys[pygame.K_s]:
             self.direction.y = 1
+            self.status = "down"
         else:
             self.direction.y = 0
 
         if keys[pygame.K_d]:
             self.direction.x = 1
+            self.status = "right"
         elif keys[pygame.K_a]:
             self.direction.x = -1
+            self.status = "left"
         else:
             self.direction.x = 0
 
         # attack input
-        # left click
         if mouse_pressed[0] and not self.attacking:
+            # left click
             self.attacking = True
             self.attack_time = pygame.time.get_ticks()
             print("left click - attack")
 
         # magic input
-        # right click
         if mouse_pressed[2] and not self.attacking:
+            # right click
             self.attacking = True
             self.attack_time = pygame.time.get_ticks()
             print("right click - magic")
+
+
+    def get_status(self):
+
+        # idle status
+        if self.direction.x == 0 and self.direction.y == 0:
+            if not "idle" in self.status and not "attack" in self.status:
+                self.status = self.status + "_idle"
+
+        # attack status
+        if self.attacking:
+            self.direction.x = 0
+            self.direction.y = 0
+            if not "attack" in self.status:
+                if "idle" in self.status:
+                    # overwrite idle
+                    self.status = self.status.replace("_idle", "_attack")
+                else:
+                    self.status = self.status + "_attack"
+        else:
+            if "attack" in self.status:
+                self.status = self.status.replace("_attack", "")
 
 
     def move(self, speed):
@@ -96,6 +149,7 @@ class Player(pygame.sprite.Sprite):
                         # stop top of moving sprite overlapping with bottom of static sprite
                         self.hitbox.top = sprite.hitbox.bottom
 
+
     def cooldowns(self):
         current_time = pygame.time.get_ticks()
         
@@ -108,4 +162,5 @@ class Player(pygame.sprite.Sprite):
     def update(self):
         self.input()
         self.cooldowns()
+        self.get_status()
         self.move(self.speed)
