@@ -52,7 +52,7 @@ class Level:
 							surface = graphics["objects"][int(col)]
 							Tile((x, y), [self.visible_sprites, self.obstacle_sprites], "object", surface)
 
-		self.player = Player((2000, 1430), [self.visible_sprites], self.obstacle_sprites)
+		self.player = Player((2000, 1415), [self.visible_sprites], self.obstacle_sprites)
 		
 
 	def run(self):
