@@ -9,15 +9,22 @@ class Player(pygame.sprite.Sprite):
         # hitbox to be slightly smaller than sprite rect and therefore gives illusion of depth in overlapping
         self.hitbox = self.rect.inflate(0, -20)
 
+        # movement
         self.direction = pygame.math.Vector2()
         self.speed = 5
+        self.attacking = False
+        self.attack_cooldown = 400
+        self.attack_time = None
 
         self.obstacle_sprites = obstacle_sprites
 
 
+
     def input(self):
         keys = pygame.key.get_pressed()
+        mouse_pressed = pygame.mouse.get_pressed()
 
+        # movement input
         if keys[pygame.K_w]:
             self.direction.y = -1
         elif keys[pygame.K_s]:
@@ -31,6 +38,20 @@ class Player(pygame.sprite.Sprite):
             self.direction.x = -1
         else:
             self.direction.x = 0
+
+        # attack input
+        # left click
+        if mouse_pressed[0] and not self.attacking:
+            self.attacking = True
+            self.attack_time = pygame.time.get_ticks()
+            print("left click - attack")
+
+        # magic input
+        # right click
+        if mouse_pressed[2] and not self.attacking:
+            self.attacking = True
+            self.attack_time = pygame.time.get_ticks()
+            print("right click - magic")
 
 
     def move(self, speed):
@@ -75,7 +96,16 @@ class Player(pygame.sprite.Sprite):
                         # stop top of moving sprite overlapping with bottom of static sprite
                         self.hitbox.top = sprite.hitbox.bottom
 
+    def cooldowns(self):
+        current_time = pygame.time.get_ticks()
+        
+        # timer to allow players to only attack on cooldown
+        if self.attacking:
+            if current_time - self.attack_time >= self.attack_cooldown:
+                self.attacking = False
+
 
     def update(self):
         self.input()
+        self.cooldowns()
         self.move(self.speed)
