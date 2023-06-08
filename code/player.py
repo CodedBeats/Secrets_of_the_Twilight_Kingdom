@@ -34,14 +34,14 @@ class Player(pygame.sprite.Sprite):
             "down": [],
             "left": [],
             "right": [],
-            "right-idle": [],
-            "left-idle": [],
-            "up-idle": [],
-            "down-idle": [],
+            "right_idle": [],
+            "left_idle": [],
+            "up_idle": [],
+            "down_idle": [],
             "right_attack": [],
-            "left-attack": [],
-            "up-attack": [],
-            "down-attack": [],
+            "left_attack": [],
+            "up_attack": [],
+            "down_attack": [],
         }
 
         for animation in self.animations.keys():
